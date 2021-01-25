@@ -1,0 +1,2 @@
+Homework: Build a hash pyramid
+Homework: Ask for amount of money, print minimum number of US coins required to make change (hint: to choose which coin to use next, use largest??)

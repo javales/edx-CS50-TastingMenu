@@ -1,0 +1,685 @@
+- associate id of a tv show with a genre in its own own table
+- so might have show id listed multiple times with all its genres
+- above is Database Normalization - separation of data into tables
+- when you might have a person table with multiple same-names, add an additional attribute to distinguish
+- OR give everyone a unique id just like the genres do
+- 
+https://docs.google.com/spreadsheets/d/1CcSQeBOMCJgksrtxQMPpJCuWHmC_-Xoy6ok4dXaOMeA/htmlview?sle=true&pru=AAABd1RRz7c*gaY_870Ecp-yTKdOiysd4Q
+
+select stars.id from stars where stars.id=id of the office
+
+SQL is designed for relational databases to make it easier to search these tables connected together with these ids
+
+sqlite3 shows.db
+.schema
+
+first query:
+SELECT * FROM shows;
+
+SELECT * FROM shows WHERE title = 'Black Mirror';
+
+SELECT title, year FROM shows WHERE title = 'The Office';
+
+SELECT * FROM shows WHERE year > 2020;
+
+SELECT * FROM shows WHERE title LIKE '%Titanic%';
+
+SELECT * FROM shows WHERE title = 'Stranger Things';
+
+SELECT * FROM shows WHERE title = 'Stranger Things' AND year = 2016;
+
+SELECT * FROM genres WHERE show_id = 4574334;
+
+SELECT genre FROM genres WHERE show_id = 4574334;
+
+*Combine above into one query*
+
+SELECT genre FROM genres WHERE show_id = (SELECT id FROM shows WHERE title = 'Stranger Things' AND year = 2016);
+
+Who are the stars of The Office?
+
+SELECT * FROM shows WHERE title = 'The Office';
+
+SELECT * FROM shows WHERE title = 'The Office' ORDER BY episodes;
+vs
+SELECT * FROM shows WHERE title = 'The Office' ORDER BY episodes DESC;
+vs
+SELECT * FROM shows WHERE title = 'The Office' ORDER BY episodes DESC LIMIT 1;
+
+SELECT * FROM stars WHERE show_id = 386676;
+
+SELECT person_id FROM stars WHERE show_id = 386676;
+
+WRONG BECAUSE OF EQUALS WHICH DOESN'T ALLOW LOOKING AT OTHER RESULTS:
+SELECT name FROM people WHERE id = (SELECT person_id FROM stars WHERE show_id = 386676);
+
+SELECT name FROM people WHERE id IN (SELECT person_id FROM stars WHERE show_id = 386676);
+
+PRACTICE:
+WGET the database if necessary
+- In what year was Jerry Seinfeld?
+SELECT birth FROM people where name = 'Jerry Seinfeld';
+1954
+
+- How many shows have a perfect 10.0 rating? <-- problem with database not having that field? OOPS. check schema to discover Ratings table
+SELECT count(title) FROM shows WHERE rating = 10.0;
+SELECT count(show_id) FROM ratings WHERE rating = 10.0;
+
+- What genres are associated with the show The Crown?
+SELECT genre FROM genres WHERE show_id = (SELECT id FROM shows WHERE title = 'The Crown');
+
+- Who wrote Arrested Development? <-- double nesting
+SELECT FROM WHERE 
+SELECT name FROM people where id =(SELECT person_id FROM writers WHERE show_id = (SELECT id FROM shows WHERE title = 'Arrested Development'));
+
+- What are the shows that Allison Janney has starred in?
+SELECT title FROM shows WHERE 
+SELECT title FROM shows WHERE id IN (SELECT show_id FROM stars WHERE person_id = 5049);
+OR?
+SELECT title FROM shows WHERE id IN (SELECT show_id FROM stars WHERE person_id = (SELECT id FROM people WHERE name = 'Allison Janney'));
+
+
+*** HOMEWORK ***
+FIFTYVILLE.DB
+Who stole the rubber ducky on July 28 on chamberlin street?
+
+SELECT * FROM crime_scene_reports WHERE street = 'Chamberlin Street';
+
+SELECT * FROM crime_scene_reports WHERE street = 'Chamberlin Street' AND month = 7 AND day = 28;
+295|2020|7|28|Chamberlin Street|Theft of the CS50 duck took place at 10:15am at the Chamberlin Street courthouse. Interviews were conducted today with three witnesses who were present at the time — each of their interview transcripts mentions the courthouse.
+
+SELECT * FROM interviews WHERE transcript LIKE '%courthouse%';
+36|Willie|2020|2|11|I work at the courthouse, and I saw the hit-and-run on my way into work this morning.
+92|Julie|2020|4|20|I saw him talking on the phone outside the courthouse at 3:00pm.
+161|Ruth|2020|7|28|Sometime within ten minutes of the theft, I saw the thief get into a car in the courthouse parking lot and drive away. If you have security footage from the courthouse parking lot, you might want to look for cars that left the parking lot in that time frame.
+162|Eugene|2020|7|28|I don't know the thief's name, but it was someone I recognized. Earlier this morning, before I arrived at the courthouse, I was walking by the ATM on Fifer Street and saw the thief there withdrawing some money.
+163|Raymond|2020|7|28|As the thief was leaving the courthouse, they called someone who talked to them for less than a minute. In the call, I heard the thief say that they were planning to take the earliest flight out of Fiftyville tomorrow. The thief then asked the person on the other end of the phone to purchase the flight ticket.
+
+SELECT * FROM interviews WHERE transcript LIKE '%courthouse%' AND month = 7 AND day = 28;
+161|Ruth|2020|7|28|Sometime within ten minutes of the theft, I saw the thief get into a car in the courthouse parking lot and drive away. If you have security footage from the courthouse parking lot, you might want to look for cars that left the parking lot in that time frame.
+162|Eugene|2020|7|28|I don't know the thief's name, but it was someone I recognized. Earlier this morning, before I arrived at the courthouse, I was walking by the ATM on Fifer Street and saw the thief there withdrawing some money.
+163|Raymond|2020|7|28|As the thief was leaving the courthouse, they called someone who talked to them for less than a minute. In the call, I heard the thief say that they were planning to take the earliest flight out of Fiftyville tomorrow. The thief then asked the person on the other end of the phone to purchase the flight ticket.
+
+SELECT * FROM atm_transactions WHERE month = 7 AND day = 28 AND transaction_type = 'withdraw' AND atm_location = 'Fifer Street';
+246|28500762|2020|7|28|Fifer Street|withdraw|48
+264|28296815|2020|7|28|Fifer Street|withdraw|20
+266|76054385|2020|7|28|Fifer Street|withdraw|60
+267|49610011|2020|7|28|Fifer Street|withdraw|50
+269|16153065|2020|7|28|Fifer Street|withdraw|80
+288|25506511|2020|7|28|Fifer Street|withdraw|20
+313|81061156|2020|7|28|Fifer Street|withdraw|30
+336|26013199|2020|7|28|Fifer Street|withdraw|35
+
+SELECT * FROM bank_accounts WHERE account_number IN (SELECT account_number FROM atm_transactions WHERE month = 7 AND day = 28 AND transaction_type = 'withdraw' AND atm_location = 'Fifer Street');
+);
+
+SELECT person_id FROM bank_accounts WHERE account_number IN (SELECT account_number FROM atm_transactions WHERE month = 7 AND day = 28 AND transaction_type = 'withdraw' AND atm_location = 'Fifer Street');
+686048
+514354
+458378
+395717
+396669
+467400
+449774
+438727
+
+SELECT * FROM airports WHERE city = 'Fiftyville';
+8|CSF|Fiftyville Regional Airport|Fiftyville
+
+SELECT * FROM flights WHERE origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville');
+
+FLIGHTS OUT OF FIFTYVILLE ON 7/28
+SELECT * FROM flights WHERE month = 7 AND day = 28 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville');
+SELECT id FROM flights WHERE month = 7 AND day = 28 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville');
+1
+6
+17
+34
+35
+
+FLIGHTS OUT OF FIFTYVILLE ON 7/29
+SELECT * FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville');
+SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville');
+1
+6
+17
+34
+35
+
+NAMES OF THOSE WITHRAWING THAT MORNING
+SELECT name FROM people WHERE id IN (SELECT person_id FROM bank_accounts WHERE account_number IN (SELECT account_number FROM atm_transactions WHERE month = 7 AND day = 28 AND transaction_type = 'withdraw' AND atm_location = 'Fifer Street'));
+Bobby
+Elizabeth
+Victoria
+Madison
+Roy
+Danielle
+Russell
+Ernest
+
+PASSENGER PASSPORT NUMBERS ON 7/28 FLIGHTS OUT OF FIFTYVILLE
+SELECT passport_number FROM passengers WHERE flight_id IN (SELECT id FROM flights WHERE month = 7 AND day = 28 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville'));
+
+PASSENGER PASSPORT NUMBERS ON 7/29 FLIGHTS OUT OF FIFTYVILLE
+SELECT passport_number FROM passengers WHERE flight_id IN (SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville'));
+
+PASSENGER NAMES ON 7/29 FLIGHTS OUT OF FIFTYVILLE
+SELECT name FROM people WHERE passport_number IN (SELECT passport_number FROM passengers WHERE flight_id IN (SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville')));
+Pamela
+Jordan
+Heather
+Larry
+Diana
+Brandon
+Rebecca
+Marilyn
+Bobby
+Roger
+Carol
+Dennis
+Madison
+Roy
+Danielle
+Russell
+Michael
+Evelyn
+Matthew
+Melissa
+Edward
+Thomas
+Steven
+John
+Ethan
+Ernest
+Richard
+Sophia
+Daniel
+Jennifer
+Douglas
+Charles
+Emily
+Gloria
+Jose
+Christian
+Doris
+
+PASSENGERS MATCHING WITHRDRAWALS
+SELECT name FROM people WHERE id IN 
+(SELECT person_id FROM bank_accounts WHERE account_number IN 
+(SELECT account_number FROM atm_transactions WHERE month = 7 AND day = 28 AND transaction_type = 'withdraw' AND atm_location = 'Fifer Street')) AND
+name IN (SELECT name FROM people WHERE passport_number IN (SELECT passport_number FROM passengers WHERE flight_id IN (SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville'))));
+
+Bobby
+Madison
+Roy
+Danielle
+Russell
+Ernest
+
+
+PHONE CALLS BY THAT DAY
+SELECT * FROM phone_calls WHERE month = 7 AND day = 28;
+
+PHONE CALLS BY Roy THAT DAY
+SELECT caller,receiver FROM phone_calls WHERE month = 7 AND day = 28 AND caller = (SELECT phone_number FROM people WHERE name = 'Roy');
+(122) 555-4581|(831) 555-0973
+
+SELECT * FROM phone_calls WHERE month = 7 AND day = 28 AND caller = (SELECT phone_number FROM people WHERE name = 'Roy');
+268|(122) 555-4581|(831) 555-0973|2020|7|28|491
+
+SELECT caller,receiver,duration FROM phone_calls WHERE month = 7 AND day = 28 AND caller = (SELECT phone_number FROM people WHERE name = 'Roy');
+(122) 555-4581|(831) 555-0973
+
+NAME OF RECEIVER
+SELECT name FROM people WHERE phone_number = '(831) 555-0973';
+Brenda
+
+XXXX DURATION OF 491 SEEMS TOO LONG XXXX
+
+LICENSE PLATES AT COURTHOUSE THAT DAY
+SELECT * FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit';
+221|2020|7|28|8|2|exit|1M92998
+222|2020|7|28|8|2|exit|N507616
+224|2020|7|28|8|7|exit|7Z8B130
+226|2020|7|28|8|13|exit|47MEFVA
+229|2020|7|28|8|15|exit|D965M59
+230|2020|7|28|8|15|exit|HW0488P
+235|2020|7|28|8|25|exit|HOD8639
+236|2020|7|28|8|34|exit|L68E5I0
+239|2020|7|28|8|34|exit|W2CT78U
+242|2020|7|28|8|38|exit|3933NUH
+245|2020|7|28|8|44|exit|1FBL6TH
+247|2020|7|28|8|49|exit|P14PE2Q
+249|2020|7|28|8|50|exit|4V16VO0
+251|2020|7|28|8|57|exit|8LLB02B
+253|2020|7|28|8|59|exit|O784M2U
+260|2020|7|28|10|16|exit|5P2BI95
+261|2020|7|28|10|18|exit|94KL13X
+262|2020|7|28|10|18|exit|6P58WS2
+263|2020|7|28|10|19|exit|4328GD8
+264|2020|7|28|10|20|exit|G412CB7
+265|2020|7|28|10|21|exit|L93JTIZ
+266|2020|7|28|10|23|exit|322W7JE
+267|2020|7|28|10|23|exit|0NTHK55
+268|2020|7|28|10|35|exit|1106N58
+280|2020|7|28|14|18|exit|NAW9653
+281|2020|7|28|15|6|exit|RS7I6A0
+282|2020|7|28|15|16|exit|94MV71O
+283|2020|7|28|16|6|exit|WD5M8I6
+284|2020|7|28|16|38|exit|4468KVT
+285|2020|7|28|16|42|exit|207W38T
+286|2020|7|28|16|47|exit|C194752
+287|2020|7|28|17|11|exit|NRYN856
+288|2020|7|28|17|15|exit|13FNH73
+289|2020|7|28|17|16|exit|V47T75I
+290|2020|7|28|17|18|exit|R3G7486
+291|2020|7|28|17|36|exit|FLFN3W0
+292|2020|7|28|17|47|exit|4963D92
+
+MATCHING LICENSE PLATES OF PASSENGERS THAT DAY ALSO AT COURTHOUSE
+SELECT license_plate FROM people WHERE license_plate IN (SELECT license_plate FROM people WHERE passport_number IN (SELECT passport_number FROM passengers WHERE flight_id IN (SELECT id FROM flights WHERE month = 7 AND day = 28 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville'))));
+
+SELECT license_plate FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit' AND license_plate IN 
+(SELECT license_plate FROM people WHERE license_plate IN
+ (SELECT license_plate FROM people WHERE passport_number IN 
+ (SELECT passport_number FROM passengers WHERE flight_id IN 
+ (SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = 
+ (SELECT id FROM airports WHERE city = 'Fiftyville')))));
+
+HW0488P
+HOD8639
+94KL13X
+4328GD8
+G412CB7
+322W7JE
+0NTHK55
+1106N58
+NAW9653
+WD5M8I6
+4468KVT
+13FNH73
+R3G7486
+FLFN3W0
+
+PEOPLE ON FLIGHT FOR ABOVE LICENSE PLATES AT COURTHOUSE
+SELECT * FROM people WHERE license_plate IN 
+(SELECT license_plate FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit' AND license_plate IN 
+(SELECT license_plate FROM people WHERE license_plate IN
+ (SELECT license_plate FROM people WHERE passport_number IN 
+ (SELECT passport_number FROM passengers WHERE flight_id IN 
+ (SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = 
+ (SELECT id FROM airports WHERE city = 'Fiftyville'))))));
+
+210245|Jordan|(328) 555-9658|7951366683|HW0488P
+325548|Brandon|(771) 555-6667|7874488539|R3G7486
+398010|Roger|(130) 555-0289|1695452385|G412CB7
+449774|Madison|(286) 555-6063|1988161715|1106N58
+467400|Danielle|(389) 555-5198|8496433585|4328GD8
+514354|Russell|(770) 555-1861|3592750733|322W7JE
+542503|Michael|(529) 555-7276|6117294637|HOD8639
+560886|Evelyn|(499) 555-9472|8294398571|0NTHK55
+660982|Thomas|(286) 555-0131|6034823042|WD5M8I6
+677698|John|(016) 555-9166|8174538026|4468KVT
+682850|Ethan|(594) 555-6254|2996517496|NAW9653
+686048|Ernest|(367) 555-5533|5773159633|94KL13X
+745650|Sophia|(027) 555-1068|3642612721|13FNH73
+750165|Daniel|(971) 555-6468|7597790505|FLFN3W0
+
+PASSENGERS MATCHING WITHDRAWALS
+Bobby
+*Madison
+Roy
+*Danielle
+*Russell
+*Ernest
+
+
+PHONE CALLS BY THEM THAT DAY
+Madison: (286) 555-6063
+SELECT * FROM phone_calls WHERE caller = '(286) 555-6063' AND month = 7 and day = 28;
+254|(286) 555-6063|(676) 555-6554|2020|7|28|43
+284|(286) 555-6063|(310) 555-8568|2020|7|28|235
+
+Danielle: (389) 555-5198
+SELECT * FROM phone_calls WHERE caller = '(389) 555-5198' AND month = 7 and day = 28;
+NONE
+
+Russell: (770) 555-1861
+SELECT * FROM phone_calls WHERE caller = '(770) 555-1861' AND month = 7 and day = 28;
+255|(770) 555-1861|(725) 555-3243|2020|7|28|49
+
+Ernest: (367) 555-5533
+SELECT * FROM phone_calls WHERE caller = '(367) 555-5533' AND month = 7 and day = 28;
+233|(367) 555-5533|(375) 555-8161|2020|7|28|45
+236|(367) 555-5533|(344) 555-9601|2020|7|28|120
+245|(367) 555-5533|(022) 555-4052|2020|7|28|241
+285|(367) 555-5533|(704) 555-5790|2020|7|28|75
+
+Duration of 43 for Madison and 45 for Ernest
+
+
+PERSON MADISON CALLED AT (676) 555-6554
+SELECT * FROM people WHERE phone_number='(676) 555-6554';
+250277|James|(676) 555-6554|2438825627|Q13SVG6
+
+PERSON ERNEST CALLED AT (375) 555-8161
+SELECT * FROM people WHERE phone_number='(375) 555-8161';
+864400|Berthold|(375) 555-8161||4V16VO0
+
+WHICH OF THE TWO ABOVE MATCH THE 10:15AM TIME PERIOD FOR THEFT AND ASSOCIATED CALL?
+
+SELECT * FROM phone_calls WHERE month = 7 AND day = 28 AND duration < 60;
+
+221|(130) 555-0289|(996) 555-8899|2020|7|28|51
+224|(499) 555-9472|(892) 555-8872|2020|7|28|36
+233|(367) 555-5533|(375) 555-8161|2020|7|28|45
+251|(499) 555-9472|(717) 555-1342|2020|7|28|50
+254|(286) 555-6063|(676) 555-6554|2020|7|28|43
+255|(770) 555-1861|(725) 555-3243|2020|7|28|49
+261|(031) 555-6622|(910) 555-3251|2020|7|28|38
+279|(826) 555-1652|(066) 555-9701|2020|7|28|55
+281|(338) 555-6650|(704) 555-2131|2020|7|28|54
+
+CALL ID for Ernest is 233 vs 254 for Madison; does that mean his call was in the morning vs hers in the afternoon given the distribution of calls throughout that day?
+SELECT * FROM phone_calls WHERE month = 7 AND day = 28;
+
+211|(336) 555-0077|(098) 555-1164|2020|7|28|318
+212|(918) 555-5327|(060) 555-2489|2020|7|28|146
+213|(491) 555-2505|(478) 555-1565|2020|7|28|241
+214|(996) 555-8899|(059) 555-4698|2020|7|28|142
+215|(704) 555-5790|(772) 555-5770|2020|7|28|200
+216|(984) 555-5921|(618) 555-9856|2020|7|28|546
+217|(579) 555-5030|(971) 555-6468|2020|7|28|421
+218|(233) 555-0473|(831) 555-0973|2020|7|28|113
+219|(293) 555-1469|(749) 555-4874|2020|7|28|195
+220|(450) 555-8297|(771) 555-7880|2020|7|28|298
+221|(130) 555-0289|(996) 555-8899|2020|7|28|51
+222|(209) 555-7806|(693) 555-7986|2020|7|28|487
+223|(918) 555-2946|(006) 555-0505|2020|7|28|359
+224|(499) 555-9472|(892) 555-8872|2020|7|28|36
+225|(669) 555-6918|(914) 555-5994|2020|7|28|233
+226|(547) 555-8781|(398) 555-1013|2020|7|28|272
+227|(544) 555-8087|(389) 555-5198|2020|7|28|595
+228|(666) 555-5774|(125) 555-8030|2020|7|28|326
+229|(047) 555-0577|(059) 555-4698|2020|7|28|379
+230|(301) 555-4174|(711) 555-3007|2020|7|28|583
+231|(801) 555-9266|(984) 555-5921|2020|7|28|148
+232|(971) 555-6468|(267) 555-2761|2020|7|28|149
+--> 233|(367) 555-5533|(375) 555-8161|2020|7|28|45
+234|(609) 555-5876|(389) 555-5198|2020|7|28|60
+235|(357) 555-0246|(502) 555-6712|2020|7|28|305
+236|(367) 555-5533|(344) 555-9601|2020|7|28|120
+237|(394) 555-3247|(035) 555-2997|2020|7|28|111
+238|(839) 555-1757|(487) 555-5865|2020|7|28|278
+239|(770) 555-1196|(324) 555-0416|2020|7|28|527
+240|(636) 555-4198|(670) 555-8598|2020|7|28|69
+241|(068) 555-0183|(770) 555-1861|2020|7|28|371
+242|(711) 555-3007|(113) 555-7544|2020|7|28|157
+243|(060) 555-2489|(204) 555-4136|2020|7|28|510
+244|(704) 555-2131|(891) 555-5672|2020|7|28|103
+245|(367) 555-5533|(022) 555-4052|2020|7|28|241
+246|(873) 555-3868|(047) 555-0577|2020|7|28|109
+247|(867) 555-9103|(068) 555-0183|2020|7|28|116
+248|(608) 555-9302|(725) 555-3243|2020|7|28|280
+249|(901) 555-8732|(491) 555-2505|2020|7|28|451
+250|(478) 555-1565|(717) 555-1342|2020|7|28|573
+251|(499) 555-9472|(717) 555-1342|2020|7|28|50
+252|(695) 555-0348|(338) 555-6650|2020|7|28|383
+253|(696) 555-9195|(258) 555-5627|2020|7|28|525
+--> 254|(286) 555-6063|(676) 555-6554|2020|7|28|43
+255|(770) 555-1861|(725) 555-3243|2020|7|28|49
+256|(711) 555-3007|(147) 555-6818|2020|7|28|358
+257|(725) 555-4692|(821) 555-5262|2020|7|28|456
+258|(324) 555-0416|(452) 555-8550|2020|7|28|328
+259|(234) 555-1294|(772) 555-5770|2020|7|28|573
+260|(669) 555-6918|(971) 555-6468|2020|7|28|67
+261|(031) 555-6622|(910) 555-3251|2020|7|28|38
+262|(342) 555-9260|(219) 555-0139|2020|7|28|404
+263|(342) 555-9260|(487) 555-5865|2020|7|28|560
+264|(801) 555-9266|(608) 555-9302|2020|7|28|425
+265|(398) 555-1013|(329) 555-5870|2020|7|28|237
+266|(016) 555-9166|(336) 555-0077|2020|7|28|88
+267|(594) 555-2863|(491) 555-2505|2020|7|28|361
+268|(122) 555-4581|(831) 555-0973|2020|7|28|491
+269|(914) 555-5994|(973) 555-3809|2020|7|28|320
+270|(258) 555-5627|(695) 555-0348|2020|7|28|368
+271|(751) 555-6567|(594) 555-6254|2020|7|28|61
+272|(771) 555-7880|(711) 555-3007|2020|7|28|288
+273|(219) 555-0139|(867) 555-9103|2020|7|28|514
+274|(676) 555-6554|(328) 555-9658|2020|7|28|153
+275|(749) 555-4874|(492) 555-5484|2020|7|28|575
+276|(328) 555-9658|(775) 555-7584|2020|7|28|579
+277|(219) 555-0139|(910) 555-3251|2020|7|28|121
+278|(380) 555-4380|(680) 555-4935|2020|7|28|550
+279|(826) 555-1652|(066) 555-9701|2020|7|28|55
+280|(594) 555-6254|(123) 555-5144|2020|7|28|346
+281|(338) 555-6650|(704) 555-2131|2020|7|28|54
+282|(971) 555-6468|(258) 555-5627|2020|7|28|441
+283|(730) 555-5115|(343) 555-0167|2020|7|28|101
+284|(286) 555-6063|(310) 555-8568|2020|7|28|235
+285|(367) 555-5533|(704) 555-5790|2020|7|28|75
+286|(041) 555-4011|(609) 555-5876|2020|7|28|565
+287|(478) 555-1565|(031) 555-6622|2020|7|28|398
+
+
+WHO DID THEY SIT NEXT TO?
+
+SELECT passport_number,seat FROM passengers WHERE flight_id IN (SELECT id FROM flights WHERE month = 7 AND day = 29 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville'));
+2835165196|9C
+6131360461|2C
+3231999695|3C
+3592750733|4C
+2626335085|5D
+6117294637|6B
+2996517496|7A
+3915621712|8D
+4149859587|7D
+9183348466|8A
+7378796210|9B
+7874488539|2C
+4195341387|3A
+6263461050|4A
+3231999695|5A
+7951366683|6B
+7214083635|2A
+1695452385|3B
+--> 5773159633|4A
+1540955065|5C
+8294398571|6C
+--> 1988161715|6D
+9878712108|7A
+8496433585|7B
+7597790505|7B
+6128131458|8A
+6264773605|9A
+3642612721|2C
+4356447308|3B
+7441135547|4A
+7894166154|9B
+6034823042|2C
+4408372428|3D
+2312901747|4D
+1151340634|5A
+8174538026|6D
+1050247273|7A
+7834357192|8C
+
+449774|Madison|(286) 555-6063|1988161715|1106N58
+686048|Ernest|(367) 555-5533|5773159633|94KL13X
+
+DON'T KNOW YET HOW TO TELL WHO THEIR FLIGHT PARTNER WAS
+
+DAY 3:
+SELECT * FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit' AND license_plate = (SELECT license_plate FROM people WHERE name = 'Ernest');
+261|2020|7|28|10|18|exit|94KL13X
+CREATE TABLE courthouse_security_logs (
+    id INTEGER,
+    year INTEGER,
+    month INTEGER,
+    day INTEGER,
+    hour INTEGER,
+    minute INTEGER,
+    activity TEXT,
+    license_plate TEXT,
+    PRIMARY KEY(id)
+);
+
+That makes 10:18AM the time Ernest left the courthouse which matches the 10:15AM rubber duck theft. Per below, Madison's time exiting the courthouse parking is:
+SELECT * FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit' AND license_plate = (SELECT license_plate FROM people WHERE name = 'Madison'); 10:35am
+
+268|2020|7|28|10|35|exit|1106N58
+
+
+
+
+ALL FLIGHT INFO FOR THAT DAY
+SELECT * FROM flights WHERE month = 7 AND day = 28 AND origin_airport_id = (SELECT id FROM airports WHERE city = 'Fiftyville');
+1|8|7|2020|7|28|17|50
+6|8|5|2020|7|28|13|49
+17|8|4|2020|7|28|20|16
+34|8|5|2020|7|28|17|20
+35|8|4|2020|7|28|16|16
+
+
+LENGTH OF CALLS THAT DAY
+SELECT * FROM phone_calls WHERE month = 7 AND day = 28 ORDER BY duration LIMIT 10;
+Less than a minute:
+224|(499) 555-9472|(892) 555-8872|2020|7|28|36
+261|(031) 555-6622|(910) 555-3251|2020|7|28|38
+254|(286) 555-6063|(676) 555-6554|2020|7|28|43
+233|(367) 555-5533|(375) 555-8161|2020|7|28|45
+255|(770) 555-1861|(725) 555-3243|2020|7|28|49
+251|(499) 555-9472|(717) 555-1342|2020|7|28|50
+221|(130) 555-0289|(996) 555-8899|2020|7|28|51
+281|(338) 555-6650|(704) 555-2131|2020|7|28|54
+279|(826) 555-1652|(066) 555-9701|2020|7|28|55
+234|(609) 555-5876|(389) 555-5198|2020|7|28|60
+
+NAMES FOR THE ABOVE SHORT PHONE CALLS
+SELECT * FROM people WHERE phone_number IN (SELECT caller FROM phone_calls WHERE month = 7 AND day = 28 ORDER BY duration LIMIT 10);
+395717|Bobby|(826) 555-1652|9878712108|30G67EN
+398010|Roger|(130) 555-0289|1695452385|G412CB7
+438727|Victoria|(338) 555-6650|9586786673|8X428L0
+449774|Madison|(286) 555-6063|1988161715|1106N58
+514354|Russell|(770) 555-1861|3592750733|322W7JE
+560886|Evelyn|(499) 555-9472|8294398571|0NTHK55
+561160|Kathryn|(609) 555-5876|6121106406|4ZY7I8T
+686048|Ernest|(367) 555-5533|5773159633|94KL13X
+907148|Kimberly|(031) 555-6622|9628244268|Q12B3Z3
+
+Males:
+395717|Bobby|(826) 555-1652|9878712108|30G67EN
+398010|Roger|(130) 555-0289|1695452385|G412CB7
+514354|Russell|(770) 555-1861|3592750733|322W7JE
+686048|Ernest|(367) 555-5533|5773159633|94KL13X
+
+LICENSE PLATES AT COURTHOUSE THAT DAY
+SELECT * FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit';
+221|2020|7|28|8|2|exit|1M92998
+222|2020|7|28|8|2|exit|N507616
+224|2020|7|28|8|7|exit|7Z8B130
+226|2020|7|28|8|13|exit|47MEFVA
+229|2020|7|28|8|15|exit|D965M59
+230|2020|7|28|8|15|exit|HW0488P
+235|2020|7|28|8|25|exit|HOD8639
+236|2020|7|28|8|34|exit|L68E5I0
+239|2020|7|28|8|34|exit|W2CT78U
+242|2020|7|28|8|38|exit|3933NUH
+245|2020|7|28|8|44|exit|1FBL6TH
+247|2020|7|28|8|49|exit|P14PE2Q
+249|2020|7|28|8|50|exit|4V16VO0
+251|2020|7|28|8|57|exit|8LLB02B
+253|2020|7|28|8|59|exit|O784M2U
+260|2020|7|28|10|16|exit|5P2BI95
+261|2020|7|28|10|18|exit|94KL13X
+262|2020|7|28|10|18|exit|6P58WS2
+263|2020|7|28|10|19|exit|4328GD8
+264|2020|7|28|10|20|exit|G412CB7
+265|2020|7|28|10|21|exit|L93JTIZ
+266|2020|7|28|10|23|exit|322W7JE
+267|2020|7|28|10|23|exit|0NTHK55
+268|2020|7|28|10|35|exit|1106N58
+280|2020|7|28|14|18|exit|NAW9653
+281|2020|7|28|15|6|exit|RS7I6A0
+282|2020|7|28|15|16|exit|94MV71O
+283|2020|7|28|16|6|exit|WD5M8I6
+284|2020|7|28|16|38|exit|4468KVT
+285|2020|7|28|16|42|exit|207W38T
+286|2020|7|28|16|47|exit|C194752
+287|2020|7|28|17|11|exit|NRYN856
+288|2020|7|28|17|15|exit|13FNH73
+289|2020|7|28|17|16|exit|V47T75I
+290|2020|7|28|17|18|exit|R3G7486
+291|2020|7|28|17|36|exit|FLFN3W0
+292|2020|7|28|17|47|exit|4963D92
+
+THESE THREE MALES AT THE COURTHOUSE PLACED SHORT CALLS THAT DAY
+398010|Roger|(130) 555-0289|1695452385|G412CB7
+514354|Russell|(770) 555-1861|3592750733|322W7JE
+686048|Ernest|(367) 555-5533|5773159633|94KL13X
+
+XXXX None of above were on the flight???? XXXX
+
+WRONG ASSUMPTION! NO ONE SAID "HE" nor "HIM":
+438727|Victoria|(338) 555-6650|9586786673|8X428L0
+449774|Madison|(286) 555-6063|1988161715|1106N58
+560886|Evelyn|(499) 555-9472|8294398571|0NTHK55
+561160|Kathryn|(609) 555-5876|6121106406|4ZY7I8T
+907148|Kimberly|(031) 555-6622|9628244268|Q12B3Z3
+
+SELECT * FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit' AND license_plate IN 
+(SELECT license_plate FROM people WHERE phone_number IN 
+(SELECT caller FROM phone_calls WHERE month = 7 AND day = 28 ORDER BY duration LIMIT 10));
+261|2020|7|28|10|18|exit|94KL13X
+264|2020|7|28|10|20|exit|G412CB7
+266|2020|7|28|10|23|exit|322W7JE
+267|2020|7|28|10|23|exit|0NTHK55
+268|2020|7|28|10|35|exit|1106N58
+
+PEOPLE OF ABOVE LICENSE PLATES
+SELECT name FROM people WHERE license_plate IN 
+(SELECT license_plate FROM courthouse_security_logs WHERE month = 7 AND day = 28 AND activity = 'exit' AND license_plate IN 
+(SELECT license_plate FROM people WHERE phone_number IN 
+(SELECT caller FROM phone_calls WHERE month = 7 AND day = 28 ORDER BY duration LIMIT 10)));
+Roger
+Madison
+Russell
+Evelyn
+Ernest
+
+Pamela
+Natalie
+Sean
+Larry
+Laura
+Rebecca
+Grace
+Carol
+Sara
+Roy
+Billy
+Jean
+Hannah
+Olivia
+Kathryn
+Paul
+Betty
+Melissa
+Amanda
+Steven
+John
+Sharon
+Sophia
+Judith
+Daniel
+Nicole
+Jose
+Nancy
+Joyce
+Kimberly
+
+XXXX STILL NO MATCH BETWEEN PASSENGERS XXXX
+WHY? Because I've been searching flights for the WRONG DAY!!!
+"163|Raymond|2020|7|28|As the thief was leaving the courthouse, they called someone who talked to them for less than a minute. In the call, I heard the thief say that they were planning to take the earliest flight out of Fiftyville tomorrow. The thief then asked the person on the other end of the phone to purchase the flight ticket."
+
+Next step: find out actual month and day values we should be investigating.

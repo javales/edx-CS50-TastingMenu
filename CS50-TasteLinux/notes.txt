@@ -1,0 +1,171 @@
+terminal path indicator changes to ~ when you're within your home folder
+
+can move multiple files by separating with spaces until folder name
+
+mv both moves and renames files
+
+standard out is the terminal by default
+
+can ls > list as output redirection to a file called list
+
+use cat list to view list contents
+
+cat - but itself repeats everything back to you
+
+cat > welcome
+hello
+ctrl-d
+
+careful, becaause repeating above over-writes
+
+cat >> welcome to Append
+
+cat < welcome
+- reads from welcome and outputs to terminal
+- redirect input to terminal
+
+cat < welcome > welcome1
+ls shows new file with same contents
+
+"cat" is short for "concatenate"
+cat welcome welcome1 > test
+
+OR
+
+cp welcome welcome2
+
+rm to remove welcome
+rm -f to forcibly remove in Linux; macOS terminal doesn't request confirmation
+
+man rm for more argument options
+
+man -s 1 -k remove (1 is section 1 for general commands, k is for keyword)
+
+FIRST ACTIVITY
+
+Activity 0
+
+wc is for word count
+3 lines
+4 words
+16 bytes
+
+wc -l
+only shows num of lines entered so far
+
+pipes - consume instead of 
+
+cat welcome1 | wc -l (get lines in welcome1)
+
+cat | wc -l
+enter a bunch of lines
+ctrl-d
+then it will process the wc -l
+
+wget https://cdn.cs50.net/2021/x/seminars/linux/shows.csv
+
+macOS use curl instead of wget
+
+less shows.csv
+J key lets you scroll line by line
+K key scrolls up line by line
+spacebar skips to next page
+B key goes back to previous page
+G back to top of file
+Shift-G to bottom of file
+
+use / then the first word you want to find then enter and it'll jump to that
+use n for next match
+use Shift-n for previous match
+-i makes it ingore case
+do /the again and it finds any case matches
+/Game of Thrones
+
+FIRST FEW LINES OF FILE
+head shows.csv
+head -n 28 shows.csv
+
+cat shows.csv | head
+gets just the first 10 lines
+
+LAST LINES
+tail shows.csv
+
+head shows.csv > first10lines
+
+wc -l shows.csv
+
+less shows.csv
+
+GET ONLY CERTAIN FIELDS/COLUMNS
+cut lets you specify fields you want
+
+cut -d , -f 1 shows.csv (, is separator, and only want column 1)
+cut -d , -f 2 shows.csv 
+
+cut -d , -f 2,3 shows.csv
+
+cut -d , -f 2,3 shows.csv | head
+
+single quotes if delimiter confuses bash
+
+SORTING
+sort -n shows.csv
+
+sort -n shows.csv > shows_sorted.csv
+
+less shows_sorted.csv
+
+SEARCH FILE WITHOUT OPENING
+grep Friends shows.csv
+grep friends shows.csv (doesn't work since case-sensitive)
+grep -i friends shows.csv (to make case insensitive)
+grep -i 'game of thrones'
+grep '^28' (regex for starts with 28)
+
+EASE REPITION
+alias igrep='grep -i'
+igrep friends shows.csv
+not persistent, only for this session
+
+HISTORY COMMAND
+up arrow
+down arrow
+ctrl-R to search 
+enter history
+history | head
+history | tail
+
+FIND FILE OR FOLDER
+find /usr -name 'cs50*' (search usr folder for files named like that pattern)
+
+SED
+Fixing mispelling without OPENING
+sed fixes part of a file without opening
+sed 's/Seinfled/Seinfeld/' shows.csv | igrep sein
+sed -i 's/Seinfled/Seinfeld/' shows.csv FIXES FILE IN PLACE
+OR
+sed -i 's/Seinfled/Seinfeld/' shows.csv > shows-fixedSein.csv TO MAKE ANOTHER FILE
+
+LAST ACTIVITY
+
+Activity 1
+
+Year Mr. Robot aired to standard out?
+
+grep -i 'mr. robot' shows.csv | cut -d , -f 3
+
+Where is 'libcs50.a' in /usr?
+
+~/taste-linux/ $ find /usr -name 'libcs50.a'
+/usr/lib/libcs50.a
+actually didn't need single quotes above but if using * then use them
+
+TRY UBUNTU IN A VM
+ubuntu.com/appliance/vm
+
+THE LINUX COMMAND LINE FOR BEGINNERS
+ubuntu.com/tutorials/command-line-for-beginners
+
+cs50.edx.org
+
